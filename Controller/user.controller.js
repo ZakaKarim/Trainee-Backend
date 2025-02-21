@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const getUser = async(req,res)=>{
     try {
 
-        const data = await User.find().populate('product');
+        const data = await User.find();
         console.log("Data is fetch from the Server");
         res.status(200).json(data)
         
@@ -61,6 +61,9 @@ const updateUser = async(req,res)=>{
             userData.password = await bcrypt.hash(userData.password, 10); // Hash the new password
         }
         // Update the user
+        // if you just want to update one field in the dataBase so for that updating the entire resource is not a good option
+        // so for that i am just using   { $set: { name: 'Updated User Name' } }
+        // { $set: { name: "John Doe", age: 30 } } multipe fields update this  after when we are sendinf the user id 
         const updatedUser  = await User.findByIdAndUpdate(userId, userData, {
             new: true, // Return the updated document
             runValidators: true, // Run Mongoose validation

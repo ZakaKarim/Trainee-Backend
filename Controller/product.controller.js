@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 //Get method to Get the all the Products
 const getProduct = async(req,res)=>{
     try {
-        const data = await Product.find().populate('user','email name');
+        // const data = await Product.find().populate('user','email name');
+        const data = await Product.find();
         //checking if there is no Product is in the DataBase
         if(!data.length>0){
             res.status(400).json({Message:"No Product"});

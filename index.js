@@ -15,10 +15,12 @@ const PORT = 8000;
 //Import the Router Files
 const userRoute = require("./Routes/user.routes.js");
 const productRoute = require("./Routes/product.routes.js");
+const populateUser = require('./Routes/populate.routes.js');
 
 //Use the Router Files
 app.use("/user",userRoute)
 app.use("/product",productRoute)
+app.use("/populate",populateUser)
 
 
 app.listen(PORT, ()=>{

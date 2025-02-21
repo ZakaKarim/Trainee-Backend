@@ -19,6 +19,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true, 
+        // select: false, //agar ya karta hai to password kis be model ma nahi jay gay 
     },
     // Reference to products this user owns
     product:[{
