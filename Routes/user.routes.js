@@ -2,19 +2,25 @@ const express = require('express')
 const router = express.Router();
 
 
+
 // const {registerUser,getUser} = require('../Controller/user.controller.js');
-const UserController = require('../Controller/user.controller.js');
+const UserController = require('../controller/user.controller.js');
+const userValidation = require('../validators/userValidator.js');
 
 
 // router.route('/').get(getUser)
 //Register Route
-router.route('/register').post(UserController.registerUser) 
+router.route('/register').post(userValidation,UserController.registerUser) 
+
 //Get Route
 router.route('/').get(UserController.getUser)
+
 //Put Route
 router.route('/:id').put(UserController.updateUser)
+
 //Delete Route
 router.route('/:id').delete(UserController.deleteUser)
+
 //Get a Single User Detail Route
 router.route('/:email').get(UserController.getSingleUser)
 

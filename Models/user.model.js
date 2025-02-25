@@ -22,10 +22,10 @@ const UserSchema = new mongoose.Schema({
         // select: false, //agar ya karta hai to password kis be model ma nahi jay gay 
     },
     // Reference to products this user owns
-    product:[{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product"
-    }]
+    // product:[{
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Product"
+    // }]
 },{
     timestamps: true
 }

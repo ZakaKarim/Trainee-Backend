@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router();
 
-const ProductWithUserPopulate = require("../Controller/populate.users.controller.js");
+const ProductWithUserPopulate = require("../controller/populate.users.controller.js");
 
 // Existing route to get all products with populated user data
 router.route("/").get(ProductWithUserPopulate.getProductWithUser);

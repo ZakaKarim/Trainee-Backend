@@ -1,4 +1,5 @@
-const Product = require('./../Models/product.model.js')
+const { validationResult } = require('express-validator');
+const Product = require('../models/product.model.js')
 const mongoose = require("mongoose");
 //Get method to Get the all the Products
 const getProduct = async(req,res)=>{
@@ -7,10 +8,10 @@ const getProduct = async(req,res)=>{
         const data = await Product.find();
         //checking if there is no Product is in the DataBase
         if(!data.length>0){
-            res.status(400).json({Message:"No Product"});
+            res.status(400).json({Message:"No Product Find yet"});
             console.log("No Product find yet")
         }
-        console.log("Product Data is Fetch From the Server......");
+        console.log("Product Data is Fetch From the Server......"); 
         res.status(200).json(data);
     } catch (error) {
         console.log("Error :", error);
@@ -21,6 +22,12 @@ const getProduct = async(req,res)=>{
 
 //Post Method to create a Product
 const registerProduct = async(req,res)=>{
+    //Handle Validation Errors
+    const error = validationResult(req);
+    if(!error.isEmpty())
+        {
+            return res.status(400).json({error: error.array()});
+        }
     try {
         const data = req.body;//assuming data is coming in req.body
 

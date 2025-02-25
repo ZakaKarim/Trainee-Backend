@@ -1,6 +1,7 @@
 //Important point getting the User Model if you have separate Controller file and want to clean your App.js file or Routes file
 
-const User = require('./../Models/user.model.js');
+const { validationResult } = require('express-validator');
+const User = require('../models/user.model.js');
 const bcrypt = require('bcrypt');
 
 
@@ -21,6 +22,12 @@ const getUser = async(req,res)=>{
 
 //Controller to Register a User
 const  registerUser = async(req,res)=>{
+    //Handle Validation Errors
+    const error = validationResult(req);
+    if(!error.isEmpty())
+    {
+        return res.status(400).json({error: error.array()});
+    }
     try {
 
         const data = req.body//assuming data is coming in req.body
