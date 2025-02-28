@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Product = require('../models/product.model.js');
 const User = require('../models/user.model.js');
-//const User = require('../models/user.model.js');
+
 
 // Controller to fetch products by user using aggregation pipeline
 const getUserProducts = async(req,res)=>{
@@ -22,10 +22,22 @@ const getUserProducts = async(req,res)=>{
                         as: "productDetails"  // The name of the new array field to store the joined products
                     }
                 },
-                 // Unwind the productDetails array to access individual product data
-               { 
-                $unwind: "$productDetails" 
+                {
+                    // Sort the productDetails array by price in descending order
+                    //if you are not using unwind and want to play with your result than do this
+                    $addFields:{
+                            productDetails:{
+                                $sortArray:{
+                                    input: "$productDetails",
+                                    sortBy: { price: -1 } // Sort by price in descending order
+                                }
+                            }
+                    }
                 },
+                 // Unwind the productDetails array to access individual product data
+            //    { 
+            //     $unwind: "$productDetails" 
+            //     },
                 {
                      // Project the fields to include in the final output
                     $project: {
@@ -35,11 +47,11 @@ const getUserProducts = async(req,res)=>{
                     createdAt: "$productDetails.createdAt"// Include product creation date
                     }
                    },
-                    // Sort by product creation date (ascending order)
-                    { 
-                        $sort: {"productDetails.createdAt": 1 }
-                        //$sort: {"productDetails.createdAt": 1 }//in case you want to sort base on price 
-                    },
+            //         // Sort by product creation date (ascending order)
+                    // { 
+                    //     //$sort: {"productDetails.createdAt": 1 }
+                    //     $sort: {"productDetails.price": -1 }//in case you want to sort base on price 
+                    // },
             ]);
                // Send the user products as the response
                 res.status(200).json( userProducts );

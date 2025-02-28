@@ -14,7 +14,8 @@ const db = async () => {
     }
 };
 
-db();
+module.exports = db; 
+//db();
 
 // const MongoURL = 'mongodb://localhost:27017/User'
 

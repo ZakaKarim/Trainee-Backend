@@ -2,7 +2,7 @@ const express = require('express')
 const app = express();
 
 const db = require('./db');
-
+require("dotenv").config();
  
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
@@ -10,6 +10,7 @@ app.use(bodyParser.json());
 
 
 const PORT = 8000;
+
 
 
 //Import the Router Files
@@ -26,6 +27,10 @@ app.use("/populate",populateUser)
 app.use("/aggregate",productAggregationRoutes)
 app.use("/aggregateuser",userAggregationRoutes)
 
+
+
+//Calling the DataBase Name
+db();
 
 app.listen(PORT, ()=>{
     console.log(`⚙️ Server is Started on Port : ${PORT}⚙️`)
