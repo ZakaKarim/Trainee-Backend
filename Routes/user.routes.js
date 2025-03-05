@@ -12,18 +12,43 @@ const userValidation = require('../validators/userValidator.js');
 //JwtAuth Middleware 
 const {jwtAuthMiddleware} = require('../middleware/auth.middleware.js')
 
+//Multer Middleware
+const {upload} = require ("../middleware/multer.middleware.js")
+
 
 // router.route('/').get(getUser)
 
 //Register Route for User
 router.route('/register').post(userValidation,UserController.registerUser) 
 
+
+//Register Routen for User with Profile Picture 
+router.route('/register-with-Profile').post(
+    upload.fields([
+        { 
+            name: "profilePic",
+            maxCount: 1
+        }
+    ]),
+    UserController.registerUser)
+
+
 //Login Route For User
 router.route('/login').post(UserController.loginUser)
 
+//Forget Password Generate OTP Route
+router.route('/forgot-password').post(UserController.forgetPassword)
+
+//Verifying OTP
+router.route('/verify-otp').post(UserController.verifyOTP)
+
+//Rest Password
+router.route('/reset-password').post(UserController.resetPassword)
+
 
 //Route to get all the Users using find()
-router.route('/').get(jwtAuthMiddleware,UserController.getUser)
+//router.route('/').get(jwtAuthMiddleware,UserController.getUser)
+router.route('/').get(UserController.getUser)
 
 
 //Route to Fetch one user by a specific id using `findOne()`

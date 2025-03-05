@@ -2,10 +2,12 @@
 
 const { validationResult } = require('express-validator');
 const User = require('../models/user.model.js');
+const {sendMain,forgetMail} = require('../utils/emailService.js');
+const generateOTP = require('otp-generator');
+const jwtAuthMiddleware = require('../middleware/auth.middleware.js');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const {sendMain} = require('../utils/emailService.js');
-const jwtAuthMiddleware = require('../middleware/auth.middleware.js')
+const {uploadOnCloudinary} = require("../utils/cloudinary.js")
 
 
 //Controller to get a all the Users
@@ -15,7 +17,7 @@ const getUser = async(req,res)=>{
         const data = await User.find();
         console.log("Data is fetch from the Server");
         res.status(200).json(data)
-        console.log(req.user)
+        //console.log(req.user)
     } catch (error) {
         console.log("error", error)
         res.status(500).json({Message :" Internal Server Error"})
@@ -75,15 +77,46 @@ const  registerUser = async(req,res)=>{
 
         const data = req.body//assuming data is coming in req.body
 
+          //checking if the profile picture is given in the req.files
+          const loaclProfilePic = req.files?.profilePic[0]?.path;
+          // console.log("Req.files: ",req.files)
+  
+          //check this condition if the profilePicv than check first before moving next is a required field in your model 
+          //if(!loaclProfilePic){
+          //    res.status(200).json({Messsage: "Profile Pic is required"})
+         // }
+
+
+        //Uplodaing Pictures on Cloudinary 
+        const profilePic = await uploadOnCloudinary(loaclProfilePic)
+
+        //check this condition if the profilePic is not uploade  if its  a required field in your model 
+        // if(!profilePic){
+        //     res.status(200).json({Messsage: "Profile Pic is required for cloudinary"})
+        // }
+
+
+
         //Creating a new User document from the Mongoose Model 
-        const newUser = new User(data);
+        const newUser = new User({
+            name: data.name,
+            email: data.email,
+            profilePic: profilePic?.url || "",
+            password: data.password
+
+        });
+      
 
         //Saving the user in the database taking time process  using await 
         const response = await  newUser.save();
 
+
         //if you want to send a jwt token at the time of user creationn 
         const token = response.generateAuthToken();
+
+        //Agar sab kuch yah send karnai hai like html mainly
         //sendMain(response.email,"Welcome to our Ecommerce Project",`Hi ${response.name} Thanks you for registering! we wish you like this task`)
+
 
         //sendMain(response.email,response.name);
         //console.log("Data is  Saved in  the DataBase", response.email);
@@ -93,6 +126,8 @@ const  registerUser = async(req,res)=>{
 
 
          // Send a response with user details and a success message
+
+       
          
          res.status(200).json({message: "Register successfully", response, token});
         
@@ -113,7 +148,7 @@ const loginUser = async(req,res)=>{
             res.status(393).json({Message: "Username or email is required"})
         }
         // Step 2: Find user by username
-        const user = await User.findOne({name});
+        const user = await User.findOne({name:name});
         //console.log(name)
         if(!user){
             return res.status(401).json({ success: false, message: 'Invalid credentials User name is incorrect' });
@@ -122,26 +157,24 @@ const loginUser = async(req,res)=>{
         // Step 3: Compare passwords using your model method
         //const isPasswordValid = await bcrypt.compare(password, user.password);
         const isPasswordValid = await user.comparePassword(password)
-        if(!isPasswordValid){
-            res.status(400).json({Message: "Password is incorrect password is incorrect"})
+        if(isPasswordValid){
+           return  res.status(400).json({Message: "Password is incorrect"})
         }
-       // console.log(password)
-         //Step 4: Create JWT token
-        //  const token = jwt.sign({
-        //     id: user.id,
-        //     name: user.name,
-        //     email: user.email
-        //  }, 
-        //  process.env.JWT_SECRET, // Always use environment variables
-        // {
-        //     expiresIn: '2d'
-        // }
-        // );
+        console.log(isPasswordValid)
+        
+        // const validPassword = await bcrypt.compare(password, user.password);
+        // if (validPassword) return res.status(401).json({ error: 'Invalid credentials password not right' });
+        // console.log(validPassword)
+
+
         const token = user.generateAuthToken();
   
         
          // Step 5: Send response with token
-          res.status(200).json({Message:'Login Successfully your new token is given below', token});
+          res.status(200).json({Message:'Login Successfully your new token is given below', token, user: {
+            name: user.name,
+            email: user.email
+          }});
         
     } catch (error) {
         console.log("Error", error);
@@ -149,7 +182,124 @@ const loginUser = async(req,res)=>{
     }
 }
 
+//Step-1
+//Controller to Forget Password - Generate Email OTP
+const forgetPassword = async(req,res)=>{
+    try {
+
+        const {email} = req.body; //Extract the User email from the req.body protion
+
+        //check if the User exist in our system or not 
+        const user = await User.findOne({email:email});
+        console.log(email)
+        if(!user)
+        {
+            res.status(404).json({Mesaage: "User with this email does not exist in our system!! Enter the correct email"});
+        }
+        console.log(user)
+        //  Generate OTP (6-digit, 10min expiry)
+        const otp = generateOTP.generate(6, { digits: true, upperCaseAlphabets: false, specialChars: false });
+        const otpExpiry = Date.now() + 800000; // 13 minutes
+        console.log(otp)
+        console.log(otpExpiry)
+
+        // 3. Save OTP to user
+        user.resetPasswordOTP = otp;
+        user.resetPasswordExpires = otpExpiry;
+
+        const response = await user.save();
+
+        // 4. Send email
+
+        await forgetMail(response.email, response.name, response.resetPasswordOTP, response.resetPasswordExpires)
+
+        //res.json({ message: "OTP sent to email" });
+         // Send a response with user details and a success message
+         
+         res.status(200).json({message: "OTP sent to email", response:{
+            email:response.email
+         }});
+
+    } catch (error) {
+        console.log("Error:",error);
+        res.status(500).json({Message: "Internal Server Error!! "})
+    }
+}
+
+//Step-2
+//Controller to verifyOTP 
+const verifyOTP = async(req,res)=>{
+    try {
+        const { email, otp } = req.body;
+
+        // 1. Find user and check the opt expires data
+        const user = await User.findOne({email,resetPasswordExpires: {$gt: Date.now()}});
+
+        //checking the user 
+        if(!user){
+            res.status(404).json({Message: "User does not found"})
+        }
+        //checking the OTP Expries data 
+        if(!user.resetPasswordOTP == otp){
+            res.status(404).json({Message: "OTP is not found in that DataBase"})
+        }
+
+         // 2. Generate temporary token (valid for 15min)
+         const tempToken = jwt.sign(
+        {  userId: user._id},
+        process.env.JWT_SECRET,
+        { expiresIn: '15m'}
+        );
+
+        // 3. Clear OTP (optional, or wait until password update)
+        user.resetPasswordOTP = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.json({ Message: "Verify Otp Successfully",token: tempToken });    
+        
+    } catch (error) {
+        console.log("Error:",error);
+        res.status(500).json({Message: "Internal Server Error!! Error cause during Verifing OTP"})
+    }
+}
+
+//Step -3 
+//Controller to Update the Password
+const resetPassword = async(req,res)=>{
+    try {
+        const {newPassword} = req.body;
+
+        const token = req.header("Authorization")?.replace("Bearer ", "")
+        if(!token){
+            res.status(404).json({Message: "Unauthorized Token"})
+        }
+
+        //Verify token 
+        const decoded = jwt.verify(token,process.env.JWT_SECRET)
+
+        //find the user by its id 
+        const user = await User.findById(decoded.userId)
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        //Hash the Password 
+        const hashPassword = await bcrypt.hash(newPassword,10)
+        user.password = hashPassword;
+
+        const response = await user.save()
+
+        res.status(200).json({Message: "Password Reest Successfully...", response})
+
+    } catch (error) {
+        console.log("Error:",error);
+        res.status(500).json({Message: "Internal Server Error!! Error cause when changing the password"})
+    }
+}
+
+
 //Controller to Update the User 
+// Not recommand to change the password 
 const updateUser = async(req,res)=>{
     try { 
         const userId = req.params.id; //Extract the User id from the URL parameter
@@ -277,6 +427,9 @@ module.exports = {
     getUserByName,
     getUserById,
     registerUser,
+    forgetPassword,
+    verifyOTP,
+    resetPassword,
     loginUser,
     updateUser,
     updateOneUser,

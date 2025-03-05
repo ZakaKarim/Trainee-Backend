@@ -9,7 +9,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-
 // async..await is not allowed in global scope, must use a wrapper
 async function sendMain(email,username) {
   // send mail with defined transport object
@@ -105,29 +104,90 @@ async function sendMain(email,username) {
   console.log("Message sent: %s", info.messageId);
   // Message sent: <d786aa62-4e0a-070a-47ed-0b0666549519@ethereal.email>
 }
-// Function to send the welcome email
-// Function to send the welcome email
-// const sendWelcomeEmail = async (req,res) => {
-//     const mailOptions = {
-//       from: 'SiliconNexus@ethereal.email <SiliconNexus@ethereal.email>', // Sender address (usually an Ethereal email)
-//       to: "ZAKA kARIM@gmail.com",                          // Receiver's email
-//       subject: 'Welcome to Our App! ......',         // Subject line
-//       text: "Hello world?     ", // plain text body
-//       html: "<b>Hello world?</b>", // html body
-//     };
-  
-//     try {
-//       const id = await transporter.sendMail(mailOptions); // Send the email
-//       //console.log('Welcome email sent');
-//      //console.log('Welcome email sent', mailOptions.message);
-//       console.log("Message sent: %s" , id.messageId);
-//       res.json(mailOptions);
-//       console.log(mailOptions);
 
-//     } catch (error) {
-//       console.log('Error sending email:', error);
-//     }
-//   };
+//email to forget password generate OTP
+async function forgetMail(email, username ,otp, expirationMinutes ) {
+  // send mail with defined transport object
+  const info = await transporter.sendMail({
+    from: 'link2zakakarim@gmail.com', // sender address
+    to: email, // list of receivers
+    subject: "Forget Password Generate OTP", // Subject line
+    html: `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f4f4f4;
+          margin: 0;
+          padding: 0;
+        }
+        .email-container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+          background-color: #007bff;
+          padding: 10px;
+          color: #ffffff;
+          text-align: center;
+          border-top-left-radius: 8px;
+          border-top-right-radius: 8px;
+        }
+        .content {
+          padding: 20px;
+        }
+        .otp {
+          font-size: 24px;
+          font-weight: bold;
+          background-color: #f4f4f4;
+          padding: 10px;
+          margin: 20px 0;
+          text-align: center;
+          border-radius: 8px;
+          color: #007bff;
+        }
+        .footer {
+          text-align: center;
+          color: #777777;
+          font-size: 12px;
+          margin-top: 20px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <div class="header">
+          <h1>Password Reset Request</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${username},</p>
+          <p>You requested to reset your password. Use the OTP below to reset it:</p>
+          <div class="otp">${otp}</div>
+           <p>Valid for ${expirationMinutes} minutes.</p>
+          <p>If you didn't request a password reset, please ignore this email.</p>
+          <p>Thank you,<br>Your Company Name</p>
+        </div>
+        <div class="footer">
+          <p>&copy; 2025 Your Company Name. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `, 
+  });
+
+  console.log("Message sent: %s", info.messageId);
+
+}
 
 
-module.exports = { sendMain };
+module.exports = { 
+  sendMain,
+  forgetMail
+ };

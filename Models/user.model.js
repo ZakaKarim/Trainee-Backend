@@ -22,11 +22,23 @@ const UserSchema = new mongoose.Schema({
         trim: true, 
         // select: false, //agar ya karta hai to password kis be model ma nahi jay gay 
     },
+    profilePic: { 
+        type: String, // Cloudinary URL 
+    }, 
+
     // Reference to products this user owns
     // product:[{
     //     type: mongoose.Schema.Types.ObjectId,
     //     ref: "Product"
     // }]
+    // resetPasswordOTP:{
+    //     String,
+    // },
+    // resetPasswordExpires:{
+    //     Date,
+    // },
+    resetPasswordOTP: String,
+    resetPasswordExpires: Date
 },{
     timestamps: true
 }
@@ -48,6 +60,7 @@ UserSchema.methods.comparePassword = async function(enteredPassword){
         throw new Error(error);
     }
 }
+
 // Method to generate JWT Token
 UserSchema.methods.generateAuthToken = function() {
     return jwt.sign(
