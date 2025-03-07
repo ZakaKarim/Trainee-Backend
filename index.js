@@ -22,6 +22,8 @@ const productRoute = require("./routes/product.routes.js");
 const populateUser = require('./routes/populate.routes.js');
 const productAggregationRoutes = require('./routes/productAggregationRoutes.js');
 const userAggregationRoutes = require('./routes/userAggregationRoutes.js');
+const productUploadRoutes = require('./routes/sendmail.prouduct.routes.js');
+const excelRoutes = require('./routes/excelRoutes.js');
 
 //Use the Router Files
 app.use("/user",userRoute)
@@ -29,6 +31,8 @@ app.use("/product",productRoute)
 app.use("/populate",populateUser)
 app.use("/aggregate",productAggregationRoutes)
 app.use("/aggregateuser",userAggregationRoutes)
+app.use("/api",productUploadRoutes)
+app.use('/excel', excelRoutes);
 
 
 

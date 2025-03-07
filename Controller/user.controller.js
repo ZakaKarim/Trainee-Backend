@@ -65,7 +65,7 @@ const getUserById = async (req, res) => {
 };
 
 
-//Controller to Register a User
+//Controller to Register a User with profile pictures with .feild method
 const  registerUser = async(req,res)=>{
     //Handle Validation Errors
     const error = validationResult(req);
@@ -79,7 +79,9 @@ const  registerUser = async(req,res)=>{
 
           //checking if the profile picture is given in the req.files
           const loaclProfilePic = req.files?.profilePic[0]?.path;
-          // console.log("Req.files: ",req.files)
+           console.log("Req.files: ",req.files)
+
+          const  loaclbirthCertifcate = req.files?.birthCertifcate[0]?.path;
   
           //check this condition if the profilePicv than check first before moving next is a required field in your model 
           //if(!loaclProfilePic){
@@ -89,12 +91,17 @@ const  registerUser = async(req,res)=>{
 
         //Uplodaing Pictures on Cloudinary 
         const profilePic = await uploadOnCloudinary(loaclProfilePic)
+        console.log("Profile Picture is:", profilePic)
+
+        //Uploading birthCertifcate on Cloudinary
+
+        const birthCertifcate = await uploadOnCloudinary(loaclbirthCertifcate)
+        console.log("birthCertifcate Picture is:", birthCertifcate)
 
         //check this condition if the profilePic is not uploade  if its  a required field in your model 
-        // if(!profilePic){
-        //     res.status(200).json({Messsage: "Profile Pic is required for cloudinary"})
+        // if(!birthCertifcate){
+        //     res.status(200).json({Messsage: "birthCertifcate Pic is required for cloudinary"})
         // }
-
 
 
         //Creating a new User document from the Mongoose Model 
@@ -102,6 +109,7 @@ const  registerUser = async(req,res)=>{
             name: data.name,
             email: data.email,
             profilePic: profilePic?.url || "",
+            birthCertifcate: birthCertifcate?.url || "",
             password: data.password
 
         });
@@ -126,14 +134,129 @@ const  registerUser = async(req,res)=>{
 
 
          // Send a response with user details and a success message
-
-       
+     
          
          res.status(200).json({message: "Register successfully", response, token});
         
     } catch (error) {
         console.log("Error", error);
         res.status(500).json({error: "Internal Server Errror"})
+    }
+}
+
+//Method to upload a Single File
+const handleSingleUpload  = async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      const cloudResponse = await uploadOnCloudinary(req.file.path);
+      return res.status(200).json({
+        message: "File uploaded successfully",
+        url: cloudResponse.secure_url
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: error.message,
+        message: "Error in single file upload"
+      });
+    }
+  };
+
+
+//Method to upload a Array File upload
+const handleArrayUpload = async( req,res)=>{
+    try {
+        if (!req.files || req.files.length === 0) {
+          return res.status(400).json({ message: "No files uploaded" });
+        }
+    
+        const uploadPromises = req.files.map(file => uploadOnCloudinary(file.path));
+        const cloudResponses = await Promise.all(uploadPromises);
+        
+        const results = cloudResponses.map(response => ({
+          fieldName: response.original_filename,
+          url: response.secure_url
+        }));
+        
+        return res.status(200).json({
+          message: "Files uploaded successfully",
+          results
+        });
+      } catch (error) {
+        console.log("Error:",error)
+        return res.status(500).json({
+            message: "Error in array uploading"
+          });
+    }
+}
+
+
+const handleAnyUpload = async(req,res)=>{
+    try {
+        if(!req.files || req.files.length === 0){
+            res.status(404).json({message: "No file is upload ...."})
+        }
+        const uploadPromises = req.files.map(file => uploadOnCloudinary(file.path));
+        const cloudResponses = await Promise.all(uploadPromises);
+    
+    const results = cloudResponses.map(response => ({
+      fieldName: response.original_filename,
+      url: response.secure_url
+    }));
+    
+    return res.status(200).json({
+      message: "Files uploaded successfully",
+      results
+    });
+    } catch (error) {
+        return res.status(500).json({
+            error: error.message,
+            message: "Error in any upload"
+          });
+    }
+}
+
+
+const handleFieldsUpload = async(req,res)=>{
+    try {
+        // Step 1: Check if files exist
+        if(!req.files){
+            res.status(404).json({Message: "No file is uploaded"})
+        }
+        // Step 2: Upload avatar (if exists)
+        let avatarUrl = null;
+        if(req.files.avatar){
+            const avatarResponse = await uploadOnCloudinary(req.files.avatar[0].path)
+             avatarUrl = avatarResponse.secure_url
+        }
+
+        // Step 3: Upload documents (if exist)
+        let documentUrls = [];
+        if(req.files.documents){
+            const documentPromise  = req.files.documents.map(file =>
+                uploadOnCloudinary(file.path)
+            );
+
+            const documnetResponse = await Promise.all(documentPromise);
+            documentUrls = documnetResponse.map(res=> ({
+                fieldName: res.original_filename,
+                url: res.secure_url
+            }))
+            //send response
+            return res.status(200).json({
+                "message": "Files uploaded successfully",
+                avatar: avatarUrl,
+                documents: documentUrls
+            })
+        }
+        
+    } catch (error) {
+        res.status(500).json({
+            error: error.message,
+            message: "Error in fields upload"
+        })
     }
 }
 
@@ -427,6 +550,10 @@ module.exports = {
     getUserByName,
     getUserById,
     registerUser,
+    handleSingleUpload,
+    handleArrayUpload ,
+    handleAnyUpload,
+    handleFieldsUpload,
     forgetPassword,
     verifyOTP,
     resetPassword,
@@ -437,6 +564,3 @@ module.exports = {
     deleteOneUser
    
 }
-
-
-

@@ -1,8 +1,6 @@
 const express = require('express')
 const router = express.Router();
 
-
-
 // const {registerUser,getUser} = require('../Controller/user.controller.js');
 const UserController = require('../controller/user.controller.js');
 
@@ -22,16 +20,52 @@ const {upload} = require ("../middleware/multer.middleware.js")
 router.route('/register').post(userValidation,UserController.registerUser) 
 
 
-//Register Routen for User with Profile Picture 
+//Register Router for User with Profile Picture with Feilds 
 router.route('/register-with-Profile').post(
     upload.fields([
         { 
             name: "profilePic",
             maxCount: 1
-        }
+        },
+        {
+            name: "birthCertifcate",
+            maxCount: 5
+        },
+
     ]),
     UserController.registerUser)
 
+
+//Router to upload  a Profile Picture with SINGLE 
+router.route('/register-with-Profile-Single').post(
+    upload.single('singleFile'),
+    UserController.handleSingleUpload)
+
+
+//Router to upload  a Multiple Pictures with Array
+router.route('/upload/array').post(
+    upload.array('multipleFiles', 5),
+    UserController.handleArrayUpload)
+
+//Router to upload any file  with .any method
+router.route('/upload/any').post(
+    upload.any(),
+    UserController.handleAnyUpload)
+
+//Router to upload  files with .fields method
+router.route('/upload/fields').post(
+    upload.fields([
+        {
+            name: 'avatar',
+            maxCount: 1
+        },
+        {
+            name: 'documents',
+            maxCount: 3
+        }
+    ]),
+    UserController.handleFieldsUpload
+)
 
 //Login Route For User
 router.route('/login').post(UserController.loginUser)
@@ -47,8 +81,11 @@ router.route('/reset-password').post(UserController.resetPassword)
 
 
 //Route to get all the Users using find()
-//router.route('/').get(jwtAuthMiddleware,UserController.getUser)
 router.route('/').get(UserController.getUser)
+
+//route to use jwt auth middleware  to view the person of list
+//router.route('/').get(jwtAuthMiddleware,UserController.getUser)
+
 
 
 //Route to Fetch one user by a specific id using `findOne()`

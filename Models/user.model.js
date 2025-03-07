@@ -25,6 +25,9 @@ const UserSchema = new mongoose.Schema({
     profilePic: { 
         type: String, // Cloudinary URL 
     }, 
+    birthCertifcate:{
+        type: String,
+    },
 
     // Reference to products this user owns
     // product:[{

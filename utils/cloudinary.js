@@ -17,11 +17,11 @@ const fs = require('fs');
 
             //upload on Cloudinary 
             const response = await cloudinary.uploader.upload(localFilePath,{
-                resource_type: "auto"
+                resource_type: "auto" // Automatically detect the file type
             })
-            //console.log("Full response on Cloudinary.....", response);
+            console.log("Full response on Cloudinary.....", response);
             // file has been uploaded successfull
-            //console.log("file is uploaded on cloudinary ", response.url);
+           // console.log("file is uploaded on cloudinary ", response.url);
             fs.unlinkSync(localFilePath)
             return response;
             
@@ -32,4 +32,4 @@ const fs = require('fs');
             
         }
     }
-module.exports = {uploadOnCloudinary}
+module.exports = {uploadOnCloudinary} 
