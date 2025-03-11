@@ -47,7 +47,7 @@ const getUserProducts = async(req,res)=>{
                     createdAt: "$productDetails.createdAt"// Include product creation date
                     }
                    },
-            //         // Sort by product creation date (ascending order)
+                     // Sort by product creation date (ascending order)
                     // { 
                     //     //$sort: {"productDetails.createdAt": 1 }
                     //     $sort: {"productDetails.price": -1 }//in case you want to sort base on price 

@@ -1,6 +1,6 @@
 const xlsx = require("xlsx");
 const fs = require("fs");
-const path = require("path");
+const mongoose = require('mongoose');
 const Product = require ("../models/product.model.js")
 
 const uploadExcel = async (req, res) => {
@@ -30,12 +30,15 @@ const uploadExcel = async (req, res) => {
       }
 
       // Check if required fields are present
-      if (trimmedRow.name && trimmedRow.price && trimmedRow.description) {
+      if (trimmedRow.name && trimmedRow.price && trimmedRow.description && trimmedRow.userID) {
+        // Convert user ID string to ObjectId
+        const userID = new mongoose.Types.ObjectId(trimmedRow.userID);
         // Create a new product
         const product = new Product({
           name: trimmedRow.name,
           price: trimmedRow.price,
           description: trimmedRow.description,
+          user: userID, // Use the converted ObjectId
         });
 
         // Save the product to the database
@@ -45,8 +48,6 @@ const uploadExcel = async (req, res) => {
         console.warn('Skipping row due to missing or invalid fields:', trimmedRow);
       }
     }
-
-
 
      // Send a success response with the saved products
      res.status(200).json({ message: 'Data saved successfully',data, savedProducts });
