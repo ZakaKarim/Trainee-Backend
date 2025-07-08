@@ -89,6 +89,7 @@ const sendEmailWithAttachments = async (req, res) => {
       subject: "Product Details",
       text: `Product Name: ${productName}\nPrice: ${price}\nDescription: ${description}`,
       html: `
+        <h1>This is html content</h1>
         <h1>Product Details</h1>
         <p><strong>Product Name:</strong> ${productName}</p>
         <p><strong>Price:</strong> ${price}</p>

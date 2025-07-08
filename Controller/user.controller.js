@@ -284,14 +284,8 @@ const loginUser = async(req,res)=>{
            return  res.status(400).json({Message: "Password is incorrect"})
         }
         console.log(isPasswordValid)
-        
-        // const validPassword = await bcrypt.compare(password, user.password);
-        // if (validPassword) return res.status(401).json({ error: 'Invalid credentials password not right' });
-        // console.log(validPassword)
-
 
         const token = user.generateAuthToken();
-  
         
          // Step 5: Send response with token
           res.status(200).json({Message:'Login Successfully your new token is given below', token, user: {

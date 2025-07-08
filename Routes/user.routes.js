@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router();
 
-// const {registerUser,getUser} = require('../Controller/user.controller.js');
 const UserController = require('../controller/user.controller.js');
 
 //Express Validator
@@ -13,8 +12,6 @@ const {jwtAuthMiddleware} = require('../middleware/auth.middleware.js')
 //Multer Middleware
 const {upload} = require ("../middleware/multer.middleware.js")
 
-
-// router.route('/').get(getUser)
 
 //Register Route for User
 router.route('/register').post(userValidation,UserController.registerUser) 
